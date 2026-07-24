@@ -1,9 +1,18 @@
 {
 	"name": "pi-streaming-guard",
 	"version": "0.1.0",
-	"description": "Temporary Pi extension that keeps long streaming responses responsive",
+	"description": "Keep Pi's TUI responsive during long streamed responses with incremental Markdown rendering",
 	"type": "module",
 	"license": "MIT",
+	"author": "monotykamary",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/monotykamary/pi-streaming-guard.git"
+	},
+	"homepage": "https://github.com/monotykamary/pi-streaming-guard#readme",
+	"bugs": {
+		"url": "https://github.com/monotykamary/pi-streaming-guard/issues"
+	},
 	"engines": {
 		"node": ">=22.19.0"
 	},
@@ -29,7 +38,8 @@
 		"format": "biome check --write .",
 		"test": "vitest run",
 		"typecheck": "tsc --noEmit",
-		"validate": "npm run check && npm run typecheck && npm test"
+		"validate": "pnpm check && pnpm typecheck && pnpm test",
+		"prepack": "pnpm validate"
 	},
 	"dependencies": {
 		"marked": "18.0.5"
