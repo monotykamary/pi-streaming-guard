@@ -5,7 +5,8 @@ import { Marked, type Token, Tokenizer, type Tokens } from "marked";
 const STRICT_STRIKETHROUGH_REGEX = /^(~~)(?=[^\s~])((?:\\.|[^\\])*?(?:\\.|[^\s~\\]))\1(?=[^~]|$)/;
 const PATCH_REGISTRY_KEY = Symbol.for("pi-streaming-guard.patch.v1");
 const SUPPORTED_MAJOR = 0;
-const SUPPORTED_MINOR = 82;
+const MIN_SUPPORTED_MINOR = 82;
+const MAX_SUPPORTED_MINOR = 83;
 
 type AssistantMessage = Parameters<AssistantMessageComponent["updateContent"]>[0];
 type StyleFunction = (text: string) => string;
@@ -340,7 +341,9 @@ function applyPatches(): () => void {
 export function isSupportedPiVersion(version = VERSION): boolean {
 	const [coreVersion] = version.split("-", 1);
 	const [major, minor] = (coreVersion ?? "").split(".").map(Number);
-	return major === SUPPORTED_MAJOR && minor === SUPPORTED_MINOR;
+	return (
+		major === SUPPORTED_MAJOR && minor !== undefined && minor >= MIN_SUPPORTED_MINOR && minor <= MAX_SUPPORTED_MINOR
+	);
 }
 
 export function getStreamingGuardStatus(): StreamingGuardStatus {
@@ -355,7 +358,7 @@ export function getStreamingGuardStatus(): StreamingGuardStatus {
 
 export function installStreamingGuard(): StreamingGuardHandle {
 	if (!isSupportedPiVersion()) {
-		throw new Error(`pi-streaming-guard supports Pi 0.82.x, but this process is running Pi ${VERSION}`);
+		throw new Error(`pi-streaming-guard supports Pi 0.82.x–0.83.x, but this process is running Pi ${VERSION}`);
 	}
 
 	const host = globalThis as GlobalWithPatchRegistry;

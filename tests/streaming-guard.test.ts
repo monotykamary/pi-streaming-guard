@@ -54,8 +54,10 @@ describe("streaming guard", () => {
 	it("supports only the Pi release family it patches", () => {
 		expect(isSupportedPiVersion("0.82.0")).toBe(true);
 		expect(isSupportedPiVersion("0.82.9-beta.1")).toBe(true);
+		expect(isSupportedPiVersion("0.83.0")).toBe(true);
+		expect(isSupportedPiVersion("0.83.1-beta.1")).toBe(true);
 		expect(isSupportedPiVersion("0.81.9")).toBe(false);
-		expect(isSupportedPiVersion("0.83.0")).toBe(false);
+		expect(isSupportedPiVersion("0.84.0")).toBe(false);
 	});
 
 	it("reference-counts installs and restores the original prototypes", () => {
