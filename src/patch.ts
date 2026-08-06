@@ -6,7 +6,7 @@ const STRICT_STRIKETHROUGH_REGEX = /^(~~)(?=[^\s~])((?:\\.|[^\\])*?(?:\\.|[^\s~\
 const PATCH_REGISTRY_KEY = Symbol.for("pi-streaming-guard.patch.v1");
 const SUPPORTED_MAJOR = 0;
 const MIN_SUPPORTED_MINOR = 82;
-const MAX_SUPPORTED_MINOR = 83;
+const MAX_SUPPORTED_MINOR = 84;
 
 type AssistantMessage = Parameters<AssistantMessageComponent["updateContent"]>[0];
 type StyleFunction = (text: string) => string;
@@ -358,7 +358,7 @@ export function getStreamingGuardStatus(): StreamingGuardStatus {
 
 export function installStreamingGuard(): StreamingGuardHandle {
 	if (!isSupportedPiVersion()) {
-		throw new Error(`pi-streaming-guard supports Pi 0.82.x–0.83.x, but this process is running Pi ${VERSION}`);
+		throw new Error(`pi-streaming-guard supports Pi 0.82.x–0.84.x, but this process is running Pi ${VERSION}`);
 	}
 
 	const host = globalThis as GlobalWithPatchRegistry;
