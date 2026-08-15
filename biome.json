@@ -12,6 +12,6 @@
 		}
 	},
 	"files": {
-		"includes": ["**", "!!node_modules", "!!coverage"]
+		"includes": ["**", "!!node_modules", "!!coverage", "!!.pi"]
 	}
 }
