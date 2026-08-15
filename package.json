@@ -1,6 +1,6 @@
 {
 	"name": "pi-streaming-guard",
-	"version": "0.1.4",
+	"version": "0.1.5",
 	"description": "Keep Pi's TUI responsive during long streamed responses with incremental Markdown rendering",
 	"type": "module",
 	"license": "MIT",
