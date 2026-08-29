@@ -1,62 +1,62 @@
 {
-	"name": "pi-streaming-guard",
-	"version": "0.1.6",
-	"description": "Keep Pi's TUI responsive during long streamed responses with incremental Markdown rendering",
-	"type": "module",
-	"license": "MIT",
-	"author": "monotykamary",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/monotykamary/pi-streaming-guard.git"
-	},
-	"homepage": "https://github.com/monotykamary/pi-streaming-guard#readme",
-	"bugs": {
-		"url": "https://github.com/monotykamary/pi-streaming-guard/issues"
-	},
-	"engines": {
-		"node": ">=22.19.0"
-	},
-	"keywords": [
-		"pi-package",
-		"pi-extension",
-		"performance",
-		"streaming"
-	],
-	"files": [
-		"src/",
-		"README.md",
-		"LICENSE"
-	],
-	"pi": {
-		"extensions": [
-			"./src/index.ts"
-		]
-	},
-	"scripts": {
-		"benchmark": "node --expose-gc --import tsx benchmarks/streaming.ts",
-		"check": "biome check .",
-		"format": "biome check --write .",
-		"test": "vitest run",
-		"typecheck": "tsc --noEmit",
-		"validate": "pnpm check && pnpm typecheck && pnpm test",
-		"prepack": "pnpm validate"
-	},
-	"dependencies": {
-		"marked": "18.0.5"
-	},
-	"peerDependencies": {
-		"@earendil-works/pi-coding-agent": "*",
-		"@earendil-works/pi-tui": "*"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "2.3.5",
-		"@earendil-works/pi-ai": "0.84.3",
-		"@earendil-works/pi-coding-agent": "0.84.3",
-		"@earendil-works/pi-tui": "0.84.3",
-		"@types/node": "22.19.19",
-		"tsx": "4.22.1",
-		"typescript": "5.9.3",
-		"vitest": "4.1.9"
-	},
-	"packageManager": "pnpm@11.20.0"
+  "name": "pi-streaming-guard",
+  "version": "0.1.6",
+  "description": "Keep Pi's TUI responsive during long streamed responses with incremental Markdown rendering",
+  "type": "module",
+  "license": "MIT",
+  "author": "monotykamary",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/monotykamary/pi-streaming-guard.git"
+  },
+  "homepage": "https://github.com/monotykamary/pi-streaming-guard#readme",
+  "bugs": {
+    "url": "https://github.com/monotykamary/pi-streaming-guard/issues"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "performance",
+    "streaming"
+  ],
+  "files": [
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "scripts": {
+    "benchmark": "node --expose-gc --import tsx benchmarks/streaming.ts",
+    "check": "biome check .",
+    "format": "biome check --write .",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "validate": "pnpm check && pnpm typecheck && pnpm test",
+    "prepack": "pnpm validate"
+  },
+  "dependencies": {
+    "marked": "18.0.5"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.5",
+    "@earendil-works/pi-ai": "0.84.4",
+    "@earendil-works/pi-coding-agent": "0.84.4",
+    "@earendil-works/pi-tui": "0.84.4",
+    "@types/node": "22.19.19",
+    "tsx": "4.22.1",
+    "typescript": "5.9.3",
+    "vitest": "4.1.9"
+  },
+  "packageManager": "pnpm@11.20.0"
 }
