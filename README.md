@@ -59,7 +59,7 @@ pi install git:github.com/monotykamary/pi-streaming-guard
 From a local checkout:
 
 ```bash
-pnpm install
+bun install
 pi install /absolute/path/to/pi-streaming-guard
 ```
 
@@ -90,7 +90,7 @@ Representative assistant-component benchmark on a 120-column terminal:
 | 50,000 characters | 5.23 ms | 1.75 ms | 3.0× |
 | 100,000 characters | 10.63 ms | 3.53 ms | 3.0× |
 
-Run `pnpm benchmark` on your machine for local numbers. Actual frame time varies with terminal width, Markdown shape, syntax highlighting, and color support.
+Run `bun run benchmark` on your machine for local numbers. Actual frame time varies with terminal width, Markdown shape, syntax highlighting, and color support.
 
 ## Scope and limitations
 
@@ -107,9 +107,9 @@ pi remove npm:pi-streaming-guard
 ## Development
 
 ```bash
-pnpm install
-pnpm validate
-pnpm benchmark
+bun install
+bun run validate
+bun run benchmark
 ```
 
 The test suite covers prototype restoration, component reuse, document-wide link invalidation, theme invalidation, and thousands of deterministic streaming-prefix transitions. Release checks also smoke-test loading through Pi's real extension loader.
