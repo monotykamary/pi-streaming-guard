@@ -33,7 +33,8 @@ This is a focused compatibility bridge for Pi 0.82.x–0.85.x. It is meant to di
 
 1. **Pi streams normally.** Assistant and thinking content arrive through the existing message path.
 2. **The guard retains stable work.** Compatible `Markdown` components survive updates, and unchanged top-level tokens keep their rendered terminal lines.
-3. **Pi draws the same output with less work.** Reference-link changes, width changes, and theme invalidation still trigger the required rerenders.
+3. **Pi-owned transforms stay Pi-owned.** Rendered Mermaid diagrams use Pi's native path so streaming modes, width fallback, warnings, and themes remain intact.
+4. **Pi draws the same output with less work.** Reference-link changes, width changes, and theme invalidation still trigger the required rerenders.
 
 The patch is intentionally narrow: it touches the exported `AssistantMessageComponent` and `Markdown` prototypes only in interactive TUI sessions, and restores both when the session runtime shuts down.
 
@@ -96,7 +97,7 @@ Run `bun run benchmark` on your machine for local numbers. Actual frame time var
 
 Marked resolves reference-style links through document-wide state, so changing a reference definition invalidates the token cache. Theme changes and width changes also invalidate the relevant output.
 
-One enormous paragraph, list, or fenced code block is still a single top-level Markdown token and must be rerendered in full. The durable upstream solution may additionally use lightweight rendering while thinking is live.
+One enormous paragraph, list, or fenced code block is still a single top-level Markdown token and must be rerendered in full. Rendered Mermaid diagrams intentionally bypass the incremental token cache and remain on Pi's native rendering path. The durable upstream solution may additionally use lightweight rendering while thinking is live.
 
 When a Pi release includes the upstream fix, this extension will refuse that new release until its compatibility range is deliberately reviewed. At that point, uninstall it with:
 
@@ -112,7 +113,7 @@ bun run validate
 bun run benchmark
 ```
 
-The test suite covers prototype restoration, component reuse, document-wide link invalidation, theme invalidation, and thousands of deterministic streaming-prefix transitions. Release checks also smoke-test loading through Pi's real extension loader.
+The test suite covers prototype restoration, component reuse, native Mermaid passthrough, outer-wrapper composition, document-wide link invalidation, theme invalidation, and thousands of deterministic streaming-prefix transitions. Release checks also smoke-test loading through Pi's real extension loader.
 
 ## License
 

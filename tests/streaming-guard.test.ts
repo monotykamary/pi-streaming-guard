@@ -1,5 +1,10 @@
 import type { AssistantMessage } from "@earendil-works/pi-ai";
-import { AssistantMessageComponent, getMarkdownTheme, initTheme } from "@earendil-works/pi-coding-agent";
+import {
+	AssistantMessageComponent,
+	getMarkdownTheme,
+	initTheme,
+	type MarkdownTransformer,
+} from "@earendil-works/pi-coding-agent";
 import { Markdown } from "@earendil-works/pi-tui";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
@@ -35,6 +40,10 @@ function message(thinking: string): AssistantMessage {
 		stopReason: "stop",
 		timestamp: 0,
 	};
+}
+
+function textMessage(text: string): AssistantMessage {
+	return { ...message(""), content: [{ type: "text", text }] };
 }
 
 function collectMarkdown(component: unknown): Markdown[] {
@@ -178,6 +187,82 @@ describe("streaming guard", () => {
 				expect(reused.render(width)).toEqual(expected[end]);
 			}
 			handle.dispose();
+		}
+	});
+
+	it("delegates Mermaid blocks to Pi's native renderer across streaming state changes", () => {
+		const originalRender = Markdown.prototype.render;
+		let nativeRenderCalls = 0;
+		let transformerCalls = 0;
+		Markdown.prototype.render = function render(width: number): string[] {
+			nativeRenderCalls++;
+			return originalRender.call(this, width);
+		};
+
+		let handle: StreamingGuardHandle | undefined;
+		try {
+			handle = installStreamingGuard();
+			const source = "```mermaid\nflowchart LR\n  A[Start] --> B[Done]\n```";
+			const transformer: MarkdownTransformer = (markdown, context) => {
+				transformerCalls++;
+				if (!markdown.includes("```mermaid")) return markdown;
+				const phase = context.isStreaming ? "streaming" : "final";
+				return [`\`┌─ ${phase} ${context.availableWidth} ─┐\``, "`└──────────────┘`"].join("  \n");
+			};
+			const component = new AssistantMessageComponent(undefined, false, getMarkdownTheme(), "Thinking...", 1, [
+				transformer,
+			]);
+
+			component.updateContent(textMessage(source), true);
+			const firstMarkdown = markdownChildren(component)[0];
+			const streaming = component.render(64).join("\n");
+			component.updateContent(textMessage(source), false);
+			const secondMarkdown = markdownChildren(component)[0];
+			const final = component.render(64).join("\n");
+
+			expect(secondMarkdown).toBe(firstMarkdown);
+			expect(streaming).toContain("streaming 62");
+			expect(final).toContain("final 62");
+			expect(final).not.toContain("```mermaid");
+			expect(nativeRenderCalls).toBe(2);
+			expect(transformerCalls).toBe(2);
+
+			new Markdown("Ordinary Markdown.", 1, 0, getMarkdownTheme()).render(64);
+			expect(nativeRenderCalls).toBe(2);
+		} finally {
+			handle?.dispose();
+			Markdown.prototype.render = originalRender;
+		}
+	});
+
+	it("keeps Mermaid passthrough cycle-safe with an outer renderer wrapper", () => {
+		const originalRender = Markdown.prototype.render;
+		let nestedRender = originalRender;
+		let outerRenderCalls = 0;
+		const outerRender = function render(this: Markdown, width: number): string[] {
+			outerRenderCalls++;
+			return nestedRender.call(this, width);
+		};
+		Markdown.prototype.render = outerRender;
+
+		let handle: StreamingGuardHandle | undefined;
+		try {
+			handle = installStreamingGuard();
+			nestedRender = Markdown.prototype.render;
+			Markdown.prototype.render = outerRender;
+			const source = "```mermaid\nflowchart LR\n  A --> B\n```";
+			const options = {
+				transform: (text: string) => (text.includes("```mermaid") ? "`native diagram`" : text),
+			};
+
+			const rendered = new Markdown(source, 1, 0, getMarkdownTheme(), undefined, options).render(64).join("\n");
+
+			expect(rendered).toContain("native diagram");
+			expect(outerRenderCalls).toBe(2);
+		} finally {
+			handle?.dispose();
+			nestedRender = originalRender;
+			Markdown.prototype.render = originalRender;
 		}
 	});
 

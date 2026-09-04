@@ -266,6 +266,7 @@ function installMarkdownPatch(): () => void {
 	const originalInvalidate = prototype.invalidate;
 	const originalRender = prototype.render;
 	const states = new WeakMap<Markdown, MarkdownRenderState>();
+	const activeTransformPassthroughs = new WeakSet<Markdown>();
 
 	prototype.setText = function setText(text: string): void {
 		const markdown = internalMarkdown(this);
@@ -287,7 +288,25 @@ function installMarkdownPatch(): () => void {
 		}
 
 		const contentWidth = Math.max(1, width - markdown.paddingX * 2);
-		const text = markdown.options.transform?.(markdown.text, contentWidth) ?? markdown.text;
+		const transform = markdown.options.transform;
+		const text = transform?.(markdown.text, contentWidth) ?? markdown.text;
+		if (text !== markdown.text && !activeTransformPassthroughs.has(this)) {
+			// Pi's Mermaid renderer and registered Markdown transformers can depend on
+			// width, streaming state, and theme. If one materially changes the source,
+			// let the renderer chain that existed before the guard own the result. The
+			// temporary transform avoids doing expensive work twice, while the reentry
+			// guard composes with wrappers such as pi-math that may delegate back.
+			states.delete(this);
+			activeTransformPassthroughs.add(this);
+			markdown.options.transform = () => text;
+			try {
+				return originalRender.call(this, width);
+			} finally {
+				if (transform) markdown.options.transform = transform;
+				else delete markdown.options.transform;
+				activeTransformPassthroughs.delete(this);
+			}
+		}
 		if (!text || text.trim() === "") {
 			const result: string[] = [];
 			markdown.cachedText = markdown.text;
