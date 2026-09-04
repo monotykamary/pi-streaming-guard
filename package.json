@@ -1,6 +1,6 @@
 {
 	"name": "pi-streaming-guard",
-	"version": "0.1.7",
+	"version": "0.1.8",
 	"description": "Keep Pi's TUI responsive during long streamed responses with incremental Markdown rendering",
 	"type": "module",
 	"license": "MIT",
@@ -50,9 +50,9 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.3.5",
-		"@earendil-works/pi-ai": "0.84.4",
-		"@earendil-works/pi-coding-agent": "0.84.4",
-		"@earendil-works/pi-tui": "0.84.4",
+		"@earendil-works/pi-ai": "0.85.0",
+		"@earendil-works/pi-coding-agent": "0.85.0",
+		"@earendil-works/pi-tui": "0.85.0",
 		"@types/node": "22.19.19",
 		"tsx": "4.22.1",
 		"typescript": "5.9.3",

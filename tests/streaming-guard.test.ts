@@ -37,9 +37,15 @@ function message(thinking: string): AssistantMessage {
 	};
 }
 
+function collectMarkdown(component: unknown): Markdown[] {
+	if (component instanceof Markdown) return [component];
+	if (typeof component !== "object" || component === null || !("child" in component)) return [];
+	return collectMarkdown((component as { child: unknown }).child);
+}
+
 function markdownChildren(component: AssistantMessageComponent): Markdown[] {
 	const assistant = component as unknown as { contentContainer: { children: unknown[] } };
-	return assistant.contentContainer.children.filter((child): child is Markdown => child instanceof Markdown);
+	return assistant.contentContainer.children.flatMap(collectMarkdown);
 }
 
 beforeAll(() => {
@@ -58,8 +64,10 @@ describe("streaming guard", () => {
 		expect(isSupportedPiVersion("0.83.1-beta.1")).toBe(true);
 		expect(isSupportedPiVersion("0.84.0")).toBe(true);
 		expect(isSupportedPiVersion("0.84.1-beta.1")).toBe(true);
+		expect(isSupportedPiVersion("0.85.0")).toBe(true);
+		expect(isSupportedPiVersion("0.85.1-beta.1")).toBe(true);
 		expect(isSupportedPiVersion("0.81.9")).toBe(false);
-		expect(isSupportedPiVersion("0.85.0")).toBe(false);
+		expect(isSupportedPiVersion("0.86.0")).toBe(false);
 	});
 
 	it("reference-counts installs and restores the original prototypes", () => {
@@ -145,6 +153,8 @@ describe("streaming guard", () => {
 			"# ",
 			"[ref]",
 			"[ref]: https://example.com",
+			"$x^2 + y^2$",
+			String.raw`\[a \le b\]`,
 			"|",
 			"---",
 		];
@@ -169,6 +179,17 @@ describe("streaming guard", () => {
 			}
 			handle.dispose();
 		}
+	});
+
+	it("preserves transformed and LaTeX Markdown rendering", () => {
+		const source = "Inline $x^2 + y^2$ math.\n\n$$\\sum_{i=1}^n i$$";
+		const theme = getMarkdownTheme();
+		const options = { transform: (text: string) => `## Transformed\n\n${text}` };
+		const expected = new Markdown(source, 1, 0, theme, undefined, options).render(58);
+
+		install();
+		const guarded = new Markdown(source, 1, 0, theme, undefined, options);
+		expect(guarded.render(58)).toEqual(expected);
 	});
 
 	it("clears incremental state when invalidated", () => {
