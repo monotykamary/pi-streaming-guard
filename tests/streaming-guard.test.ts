@@ -75,8 +75,9 @@ describe("streaming guard", () => {
 		expect(isSupportedPiVersion("0.84.1-beta.1")).toBe(true);
 		expect(isSupportedPiVersion("0.85.0")).toBe(true);
 		expect(isSupportedPiVersion("0.85.1-beta.1")).toBe(true);
+		expect(isSupportedPiVersion("0.86.0")).toBe(true);
 		expect(isSupportedPiVersion("0.81.9")).toBe(false);
-		expect(isSupportedPiVersion("0.86.0")).toBe(false);
+		expect(isSupportedPiVersion("0.87.0")).toBe(false);
 	});
 
 	it("reference-counts installs and restores the original prototypes", () => {

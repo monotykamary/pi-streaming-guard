@@ -42,7 +42,7 @@
 		"prepack": "bun run validate"
 	},
 	"dependencies": {
-		"marked": "18.0.5"
+		"marked": "18.0.11"
 	},
 	"peerDependencies": {
 		"@earendil-works/pi-coding-agent": "*",
@@ -50,9 +50,9 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.3.5",
-		"@earendil-works/pi-ai": "0.85.1",
-		"@earendil-works/pi-coding-agent": "0.85.1",
-		"@earendil-works/pi-tui": "0.85.1",
+		"@earendil-works/pi-ai": "0.86.0",
+		"@earendil-works/pi-coding-agent": "0.86.0",
+		"@earendil-works/pi-tui": "0.86.0",
 		"@types/node": "22.19.19",
 		"tsx": "4.22.1",
 		"typescript": "5.9.3",
