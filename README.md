@@ -17,7 +17,7 @@ _Long thinking traces should not make your terminal feel slower._
 
 You keep using Pi exactly the way you always do. Streaming Guard quietly keeps completed Markdown blocks around instead of asking Pi to parse, style, wrap, and pad the entire accumulated response again for every incoming delta. Long reasoning traces stay responsive, the rendered output stays the same, and there is nothing new to invoke while you work.
 
-This is a focused compatibility bridge for Pi 0.82.x–0.85.x. It is meant to disappear once the equivalent rendering fix ships upstream.
+This is a focused compatibility bridge for Pi 0.82.x–0.87.x and 0.99.x. It is meant to disappear once the equivalent rendering fix ships upstream.
 
 ## Why Streaming Guard?
 
@@ -40,7 +40,7 @@ The patch is intentionally narrow: it touches the exported `AssistantMessageComp
 
 ## Install
 
-Requires Node.js 22.19+ and Pi 0.82.x–0.85.x.
+Requires Node.js 22.19+ and Pi 0.82.x–0.87.x and 0.99.x.
 
 ```bash
 pi install npm:pi-streaming-guard
@@ -118,3 +118,9 @@ The test suite covers prototype restoration, component reuse, native Mermaid pas
 ## License
 
 MIT
+
+## Pi 0.99 compatibility (0.1.13)
+
+Explicitly supports Pi 0.99.x after native Markdown/assistant rendering and lifecycle verification; unknown release families still fail closed. Regression tests cover resize, themes, Mermaid and shutdown. Native 0.99 token parsing caches do not replace this guard's component/token-render reuse. Benchmark gains are workload-dependent; the 100k-character case can be slower on 0.99, so compare locally with `/streaming-guard off`.
+
+Tested with Pi 0.99.0. Host-provided Pi packages are wildcard peers, not bundled dependencies; development uses exact 0.99.0 versions.
