@@ -17,7 +17,7 @@ _Long thinking traces should not make your terminal feel slower._
 
 You keep using Pi exactly the way you always do. Streaming Guard quietly keeps completed Markdown blocks around instead of asking Pi to parse, style, wrap, and pad the entire accumulated response again for every incoming delta. Long reasoning traces stay responsive, the rendered output stays the same, and there is nothing new to invoke while you work.
 
-This is a focused compatibility bridge for Pi 0.82.x–0.87.x and 0.99.x. It is meant to disappear once the equivalent rendering fix ships upstream.
+This is a focused compatibility bridge for Pi 0.82.x–0.87.x, 0.99.x and 1.0.x. It is meant to disappear once the equivalent rendering fix ships upstream.
 
 ## Why Streaming Guard?
 
@@ -40,7 +40,7 @@ The patch is intentionally narrow: it touches the exported `AssistantMessageComp
 
 ## Install
 
-Requires Node.js 22.19+ and Pi 0.82.x–0.87.x and 0.99.x.
+Requires Node.js 22.19+ and Pi 0.82.x–0.87.x, 0.99.x and 1.0.x.
 
 ```bash
 pi install npm:pi-streaming-guard
@@ -119,8 +119,8 @@ The test suite covers prototype restoration, component reuse, native Mermaid pas
 
 MIT
 
-## Pi 0.99 compatibility (0.1.13)
+## Pi 1.0 compatibility (0.1.14)
 
-Explicitly supports Pi 0.99.x after native Markdown/assistant rendering and lifecycle verification; unknown release families still fail closed. Regression tests cover resize, themes, Mermaid and shutdown. Native 0.99 token parsing caches do not replace this guard's component/token-render reuse. Benchmark gains are workload-dependent; the 100k-character case can be slower on 0.99, so compare locally with `/streaming-guard off`.
+Explicitly supports Pi 1.0.x after native Markdown/assistant rendering and lifecycle verification; unknown release families still fail closed. Native LaTeX tokenization remains enabled after the major-version rollover. Shutdown preserves later renderer owners and makes retained guard delegates inert. Regression tests cover resize, themes, Mermaid and shutdown. Native token parsing caches do not replace this guard's component/token-render reuse; benchmark gains remain workload-dependent, so compare locally with `/streaming-guard off`.
 
-Tested with Pi 0.99.0. Host-provided Pi packages are wildcard peers, not bundled dependencies; development uses exact 0.99.0 versions.
+Tested with Pi 1.0.0. Host-provided Pi packages are wildcard peers, not bundled dependencies; development uses exact 1.0.0 versions. `bun run test:pi` verifies both the modular and bundled Pi CLI classes through offscreen rendering and repeated startup/shutdown, without credentials or a terminal UI.

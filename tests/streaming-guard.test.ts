@@ -80,6 +80,10 @@ describe("streaming guard", () => {
 		expect(isSupportedPiVersion("0.81.9")).toBe(false);
 		expect(isSupportedPiVersion("0.88.0")).toBe(false);
 		expect(isSupportedPiVersion("0.99.0")).toBe(true);
+		expect(isSupportedPiVersion("1.0.0")).toBe(true);
+		expect(isSupportedPiVersion("1.0.1")).toBe(true);
+		expect(isSupportedPiVersion("1.1.0")).toBe(false);
+		expect(isSupportedPiVersion("2.0.0")).toBe(false);
 		expect(isSupportedPiVersion("0.98.0")).toBe(false);
 		expect(isSupportedPiVersion("0.100.0")).toBe(false);
 	});
@@ -102,6 +106,43 @@ describe("streaming guard", () => {
 		expect(Markdown.prototype.render).toBe(originalRender);
 		expect(AssistantMessageComponent.prototype.updateContent).toBe(originalUpdate);
 		expect(getStreamingGuardStatus().active).toBe(false);
+	});
+
+	it("preserves later renderer owners and makes retained delegates inert on disposal", () => {
+		const stockRender = Markdown.prototype.render;
+		const stockUpdate = AssistantMessageComponent.prototype.updateContent;
+		let nativeCalls = 0;
+		Markdown.prototype.render = function (this: Markdown, width) {
+			nativeCalls++;
+			return stockRender.call(this, width);
+		};
+		const handle = install();
+		const guardedRender = Markdown.prototype.render;
+		const guardedUpdate = AssistantMessageComponent.prototype.updateContent;
+		const laterRender: typeof stockRender = function (this: Markdown, width) {
+			return guardedRender.call(this, width);
+		};
+		const laterUpdate: typeof stockUpdate = function (this: AssistantMessageComponent, message, streaming) {
+			return guardedUpdate.call(this, message, streaming);
+		};
+		Markdown.prototype.render = laterRender;
+		AssistantMessageComponent.prototype.updateContent = laterUpdate;
+		try {
+			handle.dispose();
+			expect(Markdown.prototype.render).toBe(laterRender);
+			expect(AssistantMessageComponent.prototype.updateContent).toBe(laterUpdate);
+			const markdown = new Markdown("$x^2$ and **bold**", 1, 0, getMarkdownTheme());
+			expect(markdown.render(37)).toEqual(stockRender.call(markdown, 37));
+			expect(nativeCalls).toBe(1);
+			const assistant = new AssistantMessageComponent(message("First paragraph."));
+			const first = markdownChildren(assistant)[0];
+			assistant.updateContent(message("First paragraph. Second paragraph."), true);
+			expect(markdownChildren(assistant)[0]).not.toBe(first);
+			expect(getStreamingGuardStatus().active).toBe(false);
+		} finally {
+			Markdown.prototype.render = stockRender;
+			AssistantMessageComponent.prototype.updateContent = stockUpdate;
+		}
 	});
 
 	it("retains compatible assistant Markdown components between deltas", () => {

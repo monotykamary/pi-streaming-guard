@@ -208,7 +208,7 @@ const LATEX_MARKDOWN_EXTENSIONS: TokenizerExtension[] = [
 function supportsLatexMarkdown(version = VERSION): boolean {
 	const [coreVersion] = version.split("-", 1);
 	const [major, minor] = (coreVersion ?? "").split(".").map(Number);
-	return major === 0 && minor !== undefined && minor >= 84;
+	return major !== undefined && (major >= 1 || (major === 0 && minor !== undefined && minor >= 84));
 }
 
 const markdownParser = new Marked();
@@ -268,20 +268,26 @@ function installMarkdownPatch(): () => void {
 	const states = new WeakMap<Markdown, MarkdownRenderState>();
 	const activeTransformPassthroughs = new WeakSet<Markdown>();
 
-	prototype.setText = function setText(text: string): void {
+	let active = true;
+	const patchedSetText: MarkdownPrototype["setText"] = function setText(text: string): void {
+		if (!active) {
+			originalSetText.call(this, text);
+			return;
+		}
 		const markdown = internalMarkdown(this);
 		if (markdown.text === text) return;
 		markdown.text = text;
 		clearRenderedOutput(markdown);
 	};
 
-	prototype.invalidate = function invalidate(): void {
+	const patchedInvalidate: MarkdownPrototype["invalidate"] = function invalidate(): void {
 		originalInvalidate.call(this);
 		states.delete(this);
 		internalMarkdown(this).defaultStylePrefix = undefined;
 	};
 
-	prototype.render = function render(width: number): string[] {
+	const patchedRender: MarkdownPrototype["render"] = function render(width: number): string[] {
+		if (!active) return originalRender.call(this, width);
 		const markdown = internalMarkdown(this);
 		if (markdown.cachedLines && markdown.cachedText === markdown.text && markdown.cachedWidth === width) {
 			return markdown.cachedLines;
@@ -378,10 +384,14 @@ function installMarkdownPatch(): () => void {
 		return result.length > 0 ? result : [""];
 	};
 
+	prototype.setText = patchedSetText;
+	prototype.invalidate = patchedInvalidate;
+	prototype.render = patchedRender;
 	return () => {
-		prototype.setText = originalSetText;
-		prototype.invalidate = originalInvalidate;
-		prototype.render = originalRender;
+		active = false;
+		if (prototype.setText === patchedSetText) prototype.setText = originalSetText;
+		if (prototype.invalidate === patchedInvalidate) prototype.invalidate = originalInvalidate;
+		if (prototype.render === patchedRender) prototype.render = originalRender;
 	};
 }
 
@@ -446,7 +456,15 @@ function installAssistantPatch(): () => void {
 		].join("|");
 	};
 
-	prototype.updateContent = function updateContent(message: AssistantMessage, isStreaming?: boolean): void {
+	let active = true;
+	const patchedUpdateContent: AssistantPrototype["updateContent"] = function updateContent(
+		message: AssistantMessage,
+		isStreaming?: boolean,
+	): void {
+		if (!active) {
+			originalUpdateContent.call(this, message, isStreaming);
+			return;
+		}
 		const assistant = this as unknown as InternalAssistantMessageComponent;
 		const previous = retainedComponents.get(this) ?? [];
 		originalUpdateContent.call(this, message, isStreaming);
@@ -486,8 +504,10 @@ function installAssistantPatch(): () => void {
 		retainedComponents.set(this, retained);
 	};
 
+	prototype.updateContent = patchedUpdateContent;
 	return () => {
-		prototype.updateContent = originalUpdateContent;
+		active = false;
+		if (prototype.updateContent === patchedUpdateContent) prototype.updateContent = originalUpdateContent;
 	};
 }
 
@@ -509,9 +529,10 @@ export function isSupportedPiVersion(version = VERSION): boolean {
 	const [coreVersion] = version.split("-", 1);
 	const [major, minor] = (coreVersion ?? "").split(".").map(Number);
 	return (
-		major === SUPPORTED_MAJOR &&
-		minor !== undefined &&
-		((minor >= MIN_SUPPORTED_MINOR && minor <= MAX_SUPPORTED_MINOR) || minor === 99)
+		(major === 1 && minor === 0) ||
+		(major === SUPPORTED_MAJOR &&
+			minor !== undefined &&
+			((minor >= MIN_SUPPORTED_MINOR && minor <= MAX_SUPPORTED_MINOR) || minor === 99))
 	);
 }
 
@@ -528,7 +549,7 @@ export function getStreamingGuardStatus(): StreamingGuardStatus {
 export function installStreamingGuard(): StreamingGuardHandle {
 	if (!isSupportedPiVersion()) {
 		throw new Error(
-			`pi-streaming-guard supports Pi 0.82.x–0.87.x and 0.99.x, but this process is running Pi ${VERSION}`,
+			`pi-streaming-guard supports Pi 0.82.x–0.87.x, 0.99.x and 1.0.x, but this process is running Pi ${VERSION}`,
 		);
 	}
 

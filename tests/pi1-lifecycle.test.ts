@@ -34,7 +34,7 @@ it("installs only in TUI, restores and reinstalls after shutdown", async () => {
 	expect(getStreamingGuardStatus().active).toBe(false);
 	for (let i = 0; i < 2; i++) {
 		start({}, ctx);
-		expect(getStreamingGuardStatus()).toMatchObject({ active: true, supported: true, piVersion: "0.99.0" });
+		expect(getStreamingGuardStatus()).toMatchObject({ active: true, supported: true, piVersion: "1.0.0" });
 		dispose();
 		expect(getStreamingGuardStatus().active).toBe(false);
 	}
