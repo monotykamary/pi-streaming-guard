@@ -82,7 +82,9 @@ describe("streaming guard", () => {
 		expect(isSupportedPiVersion("0.99.0")).toBe(true);
 		expect(isSupportedPiVersion("1.0.0")).toBe(true);
 		expect(isSupportedPiVersion("1.0.1")).toBe(true);
-		expect(isSupportedPiVersion("1.1.0")).toBe(false);
+		expect(isSupportedPiVersion("1.1.0")).toBe(true);
+		expect(isSupportedPiVersion("1.1.1-beta.1")).toBe(true);
+		expect(isSupportedPiVersion("1.2.0")).toBe(false);
 		expect(isSupportedPiVersion("2.0.0")).toBe(false);
 		expect(isSupportedPiVersion("0.98.0")).toBe(false);
 		expect(isSupportedPiVersion("0.100.0")).toBe(false);
@@ -155,6 +157,21 @@ describe("streaming guard", () => {
 		const second = markdownChildren(component);
 		expect(second).toHaveLength(1);
 		expect(second[0]).toBe(first[0]);
+	});
+
+	it("matches native assistant output when Pi 1.1 outputPad changes", () => {
+		const content = textMessage("界 **bold**\n\n- streamed\n- output");
+		const expected = [0, 3, 1].map((pad) => {
+			const native = new AssistantMessageComponent(content);
+			native.setOutputPad(pad);
+			return native.render(31);
+		});
+		install();
+		const retained = new AssistantMessageComponent(content);
+		for (const [index, pad] of [0, 3, 1].entries()) {
+			retained.setOutputPad(pad);
+			expect(retained.render(31)).toEqual(expected[index]);
+		}
 	});
 
 	it("matches fresh Markdown rendering for every streamed prefix", () => {

@@ -15,7 +15,9 @@ const kind = manifest.name.includes("streaming")
 			? "localterm"
 			: "warp";
 const entry = join(root, kind === "math" || kind === "streaming" ? "src/index.ts" : "extensions/index.ts");
-const host = dirname(fileURLToPath(import.meta.resolve("@earendil-works/pi-coding-agent")));
+const host = process.env.PI1_HOST_PACKAGE
+	? join(process.env.PI1_HOST_PACKAGE, "dist")
+	: dirname(fileURLToPath(import.meta.resolve("@earendil-works/pi-coding-agent")));
 const home = await mkdtemp(join(tmpdir(), "pi1-render-probe-"));
 try {
 	const probe = join(home, "probe.ts");
@@ -25,10 +27,11 @@ try {
 import assert from "node:assert/strict";
 import extension from ${JSON.stringify(entry)};
 import { VERSION, initTheme, getMarkdownTheme, AssistantMessageComponent } from "@earendil-works/pi-coding-agent";
+import { fauxAssistantMessage } from "@earendil-works/pi-ai";
 import { Markdown, getCapabilities, setCapabilities, setCapabilityOverrides, resetCapabilitiesCache, setCellDimensions } from "@earendil-works/pi-tui";
 const kind = ${JSON.stringify(kind)};
 export default async function(pi) {
-  assert.equal(VERSION, "1.0.0");
+  assert.equal(VERSION, "1.1.0");
   const stock = Markdown.prototype.render;
   const stockUpdate = AssistantMessageComponent.prototype.updateContent;
   const handlers = new Map();
@@ -46,6 +49,12 @@ export default async function(pi) {
     const before = getCapabilities();
     const sample = "## 界 🙂\\n\\n**bold** and $x^2 + y^2$";
     const expected = new Markdown(sample, 1, 0, getMarkdownTheme()).render(37);
+    const assistantMessage = fauxAssistantMessage(sample);
+    const expectedByPad = [0, 3, 1].map(pad => {
+      const component = new AssistantMessageComponent(assistantMessage);
+      component.setOutputPad(pad);
+      return component.render(37);
+    });
     try {
       for (let generation = 0; generation < 2; generation++) {
         if (kind === "math") { setCapabilities({ images: "kitty", trueColor: true, hyperlinks: true }); setCellDimensions({ widthPx: 8, heightPx: 16 }); }
@@ -55,6 +64,11 @@ export default async function(pi) {
           assert.notEqual(Markdown.prototype.render, stock, "must patch the actual CLI Markdown class");
           assert.notEqual(AssistantMessageComponent.prototype.updateContent, stockUpdate);
           assert.deepEqual(new Markdown(sample, 1, 0, getMarkdownTheme()).render(37), expected);
+          const retained = new AssistantMessageComponent(assistantMessage);
+          for (const [index, pad] of [0, 3, 1].entries()) {
+            retained.setOutputPad(pad);
+            assert.deepEqual(retained.render(37), expectedByPad[index], 'outputPad must match native CLI rendering');
+          }
         } else if (kind === "math") {
           assert.notEqual(Markdown.prototype.render, stock, "must patch the actual CLI Markdown class");
           const lines = new Markdown("$$x^2$$", 0, 0, getMarkdownTheme()).render(60);
@@ -113,7 +127,7 @@ export default async function(pi) {
 			`${cli}: probe did not complete\n${result.stderr}\n${result.stdout}`,
 		);
 		console.log(
-			`${manifest.name}: Pi 1.0 ${cli} host identity, offscreen rendering, non-TUI guards, repeated shutdown and restart passed`,
+			`${manifest.name}: Pi 1.1.0 ${cli} host identity, offscreen rendering, non-TUI guards, repeated shutdown and restart passed`,
 		);
 	}
 } finally {
