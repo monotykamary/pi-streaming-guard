@@ -85,7 +85,8 @@ describe("streaming guard", () => {
 		expect(isSupportedPiVersion("1.1.0")).toBe(true);
 		expect(isSupportedPiVersion("1.1.1-beta.1")).toBe(true);
 		expect(isSupportedPiVersion("1.2.0")).toBe(true);
-		expect(isSupportedPiVersion("1.3.0")).toBe(false);
+		expect(isSupportedPiVersion("1.3.0")).toBe(true);
+		expect(isSupportedPiVersion("1.4.0")).toBe(false);
 		expect(isSupportedPiVersion("2.0.0")).toBe(false);
 		expect(isSupportedPiVersion("0.98.0")).toBe(false);
 		expect(isSupportedPiVersion("0.100.0")).toBe(false);
