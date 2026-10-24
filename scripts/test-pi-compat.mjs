@@ -31,7 +31,7 @@ import { fauxAssistantMessage } from "@earendil-works/pi-ai";
 import { Markdown, getCapabilities, setCapabilities, setCapabilityOverrides, resetCapabilitiesCache, setCellDimensions } from "@earendil-works/pi-tui";
 const kind = ${JSON.stringify(kind)};
 export default async function(pi) {
-  assert.equal(VERSION, "1.3.0");
+  assert.equal(VERSION, "1.4.0");
   const stock = Markdown.prototype.render;
   const stockUpdate = AssistantMessageComponent.prototype.updateContent;
   const handlers = new Map();
@@ -127,7 +127,7 @@ export default async function(pi) {
 			`${cli}: probe did not complete\n${result.stderr}\n${result.stdout}`,
 		);
 		console.log(
-			`${manifest.name}: Pi 1.3.0 ${cli} host identity, offscreen rendering, non-TUI guards, repeated shutdown and restart passed`,
+			`${manifest.name}: Pi 1.4.0 ${cli} host identity, offscreen rendering, non-TUI guards, repeated shutdown and restart passed`,
 		);
 	}
 } finally {

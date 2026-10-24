@@ -1,8 +1,10 @@
 import { AssistantMessageComponent, VERSION } from "@earendil-works/pi-coding-agent";
 import { type Component, type Container, Markdown, visibleWidth, wrapTextWithAnsi } from "@earendil-works/pi-tui";
 import { Marked, type Token, Tokenizer, type TokenizerExtension, type Tokens } from "marked";
+import markedCjkFriendly from "marked-cjk-friendly";
 
 const STRICT_STRIKETHROUGH_REGEX = /^(~~)(?=[^\s~])((?:\\.|[^\\])*?(?:\\.|[^\s~\\]))\1(?=[^~]|$)/;
+const TABLE_DELIMITER_ROW_REGEX = /^ {0,3}\|?[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)*\|?[ \t]*$/;
 const PATCH_REGISTRY_KEY = Symbol.for("pi-streaming-guard.patch.v1");
 const SUPPORTED_MAJOR = 0;
 const MIN_SUPPORTED_MINOR = 82;
@@ -164,21 +166,55 @@ function tokenizeInlineLatex(source: string): Tokens.Generic | undefined {
 	return { type: "latex", raw, text };
 }
 
+function isPiAtLeast(major: number, minor: number, version = VERSION): boolean {
+	const [coreVersion] = version.split("-", 1);
+	const [actualMajor, actualMinor] = (coreVersion ?? "").split(".").map(Number);
+	return (
+		actualMajor !== undefined &&
+		actualMinor !== undefined &&
+		(actualMajor > major || (actualMajor === major && actualMinor >= minor))
+	);
+}
+
+// Pi 1.4 stops display math from spanning a table start.
+const HOST_TABLE_SAFE_LATEX = isPiAtLeast(1, 4);
+
+function containsTableStart(source: string): boolean {
+	const lines = source.split("\n");
+	for (let index = 0; index < lines.length - 1; index++) {
+		const delimiterRow = lines[index + 1];
+		if (
+			(delimiterRow?.includes("|") || lines[index]?.includes("|")) &&
+			TABLE_DELIMITER_ROW_REGEX.test(delimiterRow ?? "")
+		) {
+			return true;
+		}
+	}
+	return false;
+}
+
 function tokenizeBlockLatex(source: string): Tokens.Generic | undefined {
 	const dollarMatch = /^ {0,3}\$\$[ \t]*(?:\n)?([\s\S]*?)\$\$[ \t]*(?:\n|$)/.exec(source);
-	if (dollarMatch?.[1]) {
+	if (dollarMatch?.[1] && (!HOST_TABLE_SAFE_LATEX || !containsTableStart(dollarMatch[1]))) {
 		return { type: "latexBlock", raw: dollarMatch[0], text: dollarMatch[1].trim() };
 	}
 	const bracketMatch = /^ {0,3}\\\[[ \t]*(?:\n)?([\s\S]*?)\\\][ \t]*(?:\n|$)/.exec(source);
-	if (bracketMatch?.[1]) {
+	if (bracketMatch?.[1] && (!HOST_TABLE_SAFE_LATEX || !containsTableStart(bracketMatch[1]))) {
 		return { type: "latexBlock", raw: bracketMatch[0], text: bracketMatch[1].trim() };
 	}
 	const pendingBracket = /^ {0,3}\\\[[ \t]*(?:\n)?([\s\S]*)$/.exec(source);
-	if (pendingBracket) {
-		return { type: "latexBlock", raw: pendingBracket[0], text: pendingBracket[1], pending: true };
+	if (
+		pendingBracket &&
+		(!HOST_TABLE_SAFE_LATEX || (pendingBracket[1] !== "" && !containsTableStart(pendingBracket[1] ?? "")))
+	) {
+		return { type: "latexBlock", raw: pendingBracket[0], text: pendingBracket[1] ?? "", pending: true };
 	}
 	const pendingDollar = /^ {0,3}\$\$[ \t]*(?:\n)?([\s\S]*)$/.exec(source);
-	if (pendingDollar?.[1] && looksLikePendingDollarMath(pendingDollar[1])) {
+	if (
+		pendingDollar?.[1] &&
+		looksLikePendingDollarMath(pendingDollar[1]) &&
+		(!HOST_TABLE_SAFE_LATEX || !containsTableStart(pendingDollar[1]))
+	) {
 		return { type: "latexBlock", raw: pendingDollar[0], text: pendingDollar[1], pending: true };
 	}
 	return undefined;
@@ -215,6 +251,10 @@ const markdownParser = new Marked();
 markdownParser.setOptions({
 	tokenizer: new StrictStrikethroughTokenizer(),
 });
+if (isPiAtLeast(1, 4)) {
+	const emStrong = markedCjkFriendly().tokenizer?.emStrong;
+	if (emStrong) markdownParser.use({ tokenizer: { emStrong } });
+}
 if (supportsLatexMarkdown()) markdownParser.use({ extensions: LATEX_MARKDOWN_EXTENSIONS });
 
 function trimPartialClosingFences(tokens: readonly Token[]): void {
@@ -529,7 +569,7 @@ export function isSupportedPiVersion(version = VERSION): boolean {
 	const [coreVersion] = version.split("-", 1);
 	const [major, minor] = (coreVersion ?? "").split(".").map(Number);
 	return (
-		(major === 1 && minor !== undefined && minor >= 0 && minor <= 3) ||
+		(major === 1 && minor !== undefined && minor >= 0 && minor <= 4) ||
 		(major === SUPPORTED_MAJOR &&
 			minor !== undefined &&
 			((minor >= MIN_SUPPORTED_MINOR && minor <= MAX_SUPPORTED_MINOR) || minor === 99))
@@ -549,7 +589,7 @@ export function getStreamingGuardStatus(): StreamingGuardStatus {
 export function installStreamingGuard(): StreamingGuardHandle {
 	if (!isSupportedPiVersion()) {
 		throw new Error(
-			`pi-streaming-guard supports Pi 0.82.x–0.87.x, 0.99.x and 1.0.x–1.3.x, but this process is running Pi ${VERSION}`,
+			`pi-streaming-guard supports Pi 0.82.x–0.87.x, 0.99.x and 1.0.x–1.4.x, but this process is running Pi ${VERSION}`,
 		);
 	}
 

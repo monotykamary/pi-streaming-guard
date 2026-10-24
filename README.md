@@ -17,7 +17,7 @@ _Long thinking traces should not make your terminal feel slower._
 
 You keep using Pi exactly the way you always do. Streaming Guard quietly keeps completed Markdown blocks around instead of asking Pi to parse, style, wrap, and pad the entire accumulated response again for every incoming delta. Long reasoning traces stay responsive, the rendered output stays the same, and there is nothing new to invoke while you work.
 
-This is a focused compatibility bridge for Pi 0.82.x–0.87.x, 0.99.x and 1.0.x–1.3.x. It is meant to disappear once the equivalent rendering fix ships upstream.
+This is a focused compatibility bridge for Pi 0.82.x–0.87.x, 0.99.x and 1.0.x–1.4.x. It is meant to disappear once the equivalent rendering fix ships upstream.
 
 ## Why Streaming Guard?
 
@@ -40,7 +40,7 @@ The patch is intentionally narrow: it touches the exported `AssistantMessageComp
 
 ## Install
 
-Requires Node.js 22.19+ and Pi 0.82.x–0.87.x, 0.99.x and 1.0.x–1.3.x.
+Requires Node.js 22.19+ and Pi 0.82.x–0.87.x, 0.99.x and 1.0.x–1.4.x.
 
 ```bash
 pi install npm:pi-streaming-guard
@@ -113,15 +113,19 @@ bun run validate
 bun run benchmark
 ```
 
-The test suite covers prototype restoration, component reuse, native Mermaid passthrough, outer-wrapper composition, document-wide link invalidation, theme invalidation, and thousands of deterministic streaming-prefix transitions. Release checks also smoke-test loading through Pi's real extension loader.
+The test suite covers prototype restoration, component reuse, native Mermaid passthrough, outer-wrapper composition, document-wide link invalidation, theme invalidation, Pi 1.4 CJK/LaTeX tokenization parity, and thousands of deterministic streaming-prefix transitions. Release checks also smoke-test loading through Pi's real extension loader.
 
 ## License
 
 MIT
 
+## Pi 1.4 compatibility
+
+Development and offline host probes use exact Pi 1.4.0. Pi 1.4.0 adds a CJK-aware emphasis tokenizer and stops unclosed display math from swallowing a following GFM table; the guard mirrors both so its incremental token cache renders exactly like native Markdown across streaming prefixes. The assistant message component, `renderToken()`, and the bundled `marked` 18.0.11 are unchanged. Pi 1.5 and newer remain unsupported until explicitly audited.
+
 ## Pi 1.3 compatibility
 
-Development and offline host probes use exact Pi 1.3.0. Pi 1.3.0 ships pi-tui unchanged from 1.2.0, and the assistant message component and the bundled `marked` are unchanged too, so the guard's renderer reuse and parity checks carry over. Pi 1.4 and newer remain unsupported until explicitly audited.
+Development and offline host probes used exact Pi 1.3.0. Pi 1.3.0 ships pi-tui unchanged from 1.2.0, and the assistant message component and the bundled `marked` are unchanged too, so the guard's renderer reuse and parity checks carry over.
 
 ## Pi 1.2 compatibility
 

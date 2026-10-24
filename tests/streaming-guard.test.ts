@@ -86,7 +86,8 @@ describe("streaming guard", () => {
 		expect(isSupportedPiVersion("1.1.1-beta.1")).toBe(true);
 		expect(isSupportedPiVersion("1.2.0")).toBe(true);
 		expect(isSupportedPiVersion("1.3.0")).toBe(true);
-		expect(isSupportedPiVersion("1.4.0")).toBe(false);
+		expect(isSupportedPiVersion("1.4.0")).toBe(true);
+		expect(isSupportedPiVersion("1.5.0")).toBe(false);
 		expect(isSupportedPiVersion("2.0.0")).toBe(false);
 		expect(isSupportedPiVersion("0.98.0")).toBe(false);
 		expect(isSupportedPiVersion("0.100.0")).toBe(false);
@@ -202,6 +203,23 @@ describe("streaming guard", () => {
 			reused.setText(source.slice(0, end));
 			expect(reused.render(47)).toEqual(expected[end]);
 		}
+	});
+
+	it("matches native Pi 1.4 CJK emphasis and table-safe LaTeX tokenization", () => {
+		const sources = ["文本 a**中*a 文本", "「**強調**」と a**x*界", "$$\nx + y\n\n| a | b |\n|---|---|\n| 1 | 2 |"];
+		const theme = getMarkdownTheme();
+		const expected = sources.map((source) =>
+			Array.from({ length: source.length + 1 }, (_, end) => new Markdown(source.slice(0, end), 1, 0, theme).render(41)),
+		);
+
+		install();
+		const reused = new Markdown("", 1, 0, theme);
+		sources.forEach((source, index) => {
+			for (let end = 0; end <= source.length; end++) {
+				reused.setText(source.slice(0, end));
+				expect(reused.render(41)).toEqual(expected[index]?.[end]);
+			}
+		});
 	});
 
 	it("matches fresh rendering across randomized Markdown prefixes", () => {
