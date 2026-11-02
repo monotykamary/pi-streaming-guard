@@ -87,7 +87,9 @@ describe("streaming guard", () => {
 		expect(isSupportedPiVersion("1.2.0")).toBe(true);
 		expect(isSupportedPiVersion("1.3.0")).toBe(true);
 		expect(isSupportedPiVersion("1.4.0")).toBe(true);
-		expect(isSupportedPiVersion("1.5.0")).toBe(false);
+		expect(isSupportedPiVersion("1.5.0")).toBe(true);
+		expect(isSupportedPiVersion("1.5.1-beta.1")).toBe(true);
+		expect(isSupportedPiVersion("1.6.0")).toBe(false);
 		expect(isSupportedPiVersion("2.0.0")).toBe(false);
 		expect(isSupportedPiVersion("0.98.0")).toBe(false);
 		expect(isSupportedPiVersion("0.100.0")).toBe(false);
@@ -116,10 +118,19 @@ describe("streaming guard", () => {
 	it("preserves later renderer owners and makes retained delegates inert on disposal", () => {
 		const stockRender = Markdown.prototype.render;
 		const stockUpdate = AssistantMessageComponent.prototype.updateContent;
+		const native = new AssistantMessageComponent(message("First paragraph."));
+		const nativeFirst = markdownChildren(native)[0];
+		native.updateContent(message("First paragraph. Second paragraph."), true);
+		const nativeRetainsMarkdown = markdownChildren(native)[0] === nativeFirst;
 		let nativeCalls = 0;
+		let nativeUpdates = 0;
 		Markdown.prototype.render = function (this: Markdown, width) {
 			nativeCalls++;
 			return stockRender.call(this, width);
+		};
+		AssistantMessageComponent.prototype.updateContent = function (this: AssistantMessageComponent, message, streaming) {
+			nativeUpdates++;
+			return stockUpdate.call(this, message, streaming);
 		};
 		const handle = install();
 		const guardedRender = Markdown.prototype.render;
@@ -142,7 +153,9 @@ describe("streaming guard", () => {
 			const assistant = new AssistantMessageComponent(message("First paragraph."));
 			const first = markdownChildren(assistant)[0];
 			assistant.updateContent(message("First paragraph. Second paragraph."), true);
-			expect(markdownChildren(assistant)[0]).not.toBe(first);
+			expect(markdownChildren(assistant)[0] === first).toBe(nativeRetainsMarkdown);
+			expect(assistant.render(37)).toEqual(native.render(37));
+			expect(nativeUpdates).toBe(2);
 			expect(getStreamingGuardStatus().active).toBe(false);
 		} finally {
 			Markdown.prototype.render = stockRender;

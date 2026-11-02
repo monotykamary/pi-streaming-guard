@@ -23,3 +23,5 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Validate
         run: bun run validate
+      - name: Verify native Pi host lifecycle
+        run: bun run test:pi

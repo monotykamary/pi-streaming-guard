@@ -569,7 +569,7 @@ export function isSupportedPiVersion(version = VERSION): boolean {
 	const [coreVersion] = version.split("-", 1);
 	const [major, minor] = (coreVersion ?? "").split(".").map(Number);
 	return (
-		(major === 1 && minor !== undefined && minor >= 0 && minor <= 4) ||
+		(major === 1 && minor !== undefined && minor >= 0 && minor <= 5) ||
 		(major === SUPPORTED_MAJOR &&
 			minor !== undefined &&
 			((minor >= MIN_SUPPORTED_MINOR && minor <= MAX_SUPPORTED_MINOR) || minor === 99))
@@ -589,7 +589,7 @@ export function getStreamingGuardStatus(): StreamingGuardStatus {
 export function installStreamingGuard(): StreamingGuardHandle {
 	if (!isSupportedPiVersion()) {
 		throw new Error(
-			`pi-streaming-guard supports Pi 0.82.x–0.87.x, 0.99.x and 1.0.x–1.4.x, but this process is running Pi ${VERSION}`,
+			`pi-streaming-guard supports Pi 0.82.x–0.87.x, 0.99.x and 1.0.x–1.5.x, but this process is running Pi ${VERSION}`,
 		);
 	}
 
