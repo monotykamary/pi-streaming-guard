@@ -66,7 +66,7 @@ afterEach(() => {
 });
 
 describe("streaming guard", () => {
-	it("supports only the Pi release family it patches", () => {
+	it("supports only the legacy patch and native Pi release families", () => {
 		expect(isSupportedPiVersion("0.82.0")).toBe(true);
 		expect(isSupportedPiVersion("0.82.9-beta.1")).toBe(true);
 		expect(isSupportedPiVersion("0.83.0")).toBe(true);
@@ -89,7 +89,7 @@ describe("streaming guard", () => {
 		expect(isSupportedPiVersion("1.4.0")).toBe(true);
 		expect(isSupportedPiVersion("1.5.0")).toBe(true);
 		expect(isSupportedPiVersion("1.5.1-beta.1")).toBe(true);
-		expect(isSupportedPiVersion("1.6.0")).toBe(false);
+		expect(isSupportedPiVersion("1.6.0")).toBe(true);
 		expect(isSupportedPiVersion("2.0.0")).toBe(false);
 		expect(isSupportedPiVersion("0.98.0")).toBe(false);
 		expect(isSupportedPiVersion("0.100.0")).toBe(false);

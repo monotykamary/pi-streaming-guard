@@ -15,9 +15,15 @@ const kind = manifest.name.includes("streaming")
 			? "localterm"
 			: "warp";
 const entry = join(root, kind === "math" || kind === "streaming" ? "src/index.ts" : "extensions/index.ts");
-const host = process.env.PI1_HOST_PACKAGE
-	? join(process.env.PI1_HOST_PACKAGE, "dist")
-	: dirname(fileURLToPath(import.meta.resolve("@earendil-works/pi-coding-agent")));
+const native = process.argv.includes("--native");
+const expectedVersion = native
+	? manifest.devDependencies["pi-native-host"].split("@").at(-1)
+	: manifest.devDependencies["@earendil-works/pi-coding-agent"];
+const host = native
+	? join(root, "node_modules", "pi-native-host", "dist")
+	: process.env.PI1_HOST_PACKAGE
+		? join(process.env.PI1_HOST_PACKAGE, "dist")
+		: dirname(fileURLToPath(import.meta.resolve("@earendil-works/pi-coding-agent")));
 const home = await mkdtemp(join(tmpdir(), "pi1-render-probe-"));
 try {
 	const probe = join(home, "probe.ts");
@@ -31,7 +37,7 @@ import { fauxAssistantMessage } from "@earendil-works/pi-ai";
 import { Markdown, getCapabilities, setCapabilities, setCapabilityOverrides, resetCapabilitiesCache, setCellDimensions } from "@earendil-works/pi-tui";
 const kind = ${JSON.stringify(kind)};
 export default async function(pi) {
-  assert.equal(VERSION, "1.5.0");
+  assert.equal(VERSION, ${JSON.stringify(expectedVersion)});
   const stock = Markdown.prototype.render;
   const stockUpdate = AssistantMessageComponent.prototype.updateContent;
   const handlers = new Map();
@@ -61,8 +67,13 @@ export default async function(pi) {
         await fire("session_start");
         await new Promise(resolve => setImmediate(resolve));
         if (kind === "streaming") {
-          assert.notEqual(Markdown.prototype.render, stock, "must patch the actual CLI Markdown class");
-          assert.notEqual(AssistantMessageComponent.prototype.updateContent, stockUpdate);
+          if (${native}) {
+            assert.equal(Markdown.prototype.render, stock, "native Pi must keep its Markdown renderer");
+            assert.equal(AssistantMessageComponent.prototype.updateContent, stockUpdate, "native Pi must keep its assistant renderer");
+          } else {
+            assert.notEqual(Markdown.prototype.render, stock, "must patch the actual CLI Markdown class");
+            assert.notEqual(AssistantMessageComponent.prototype.updateContent, stockUpdate);
+          }
           assert.deepEqual(new Markdown(sample, 1, 0, getMarkdownTheme()).render(37), expected);
           const retained = new AssistantMessageComponent(assistantMessage);
           for (const [index, pad] of [0, 3, 1].entries()) {
@@ -127,7 +138,7 @@ export default async function(pi) {
 			`${cli}: probe did not complete\n${result.stderr}\n${result.stdout}`,
 		);
 		console.log(
-			`${manifest.name}: Pi 1.5.0 ${cli} host identity, offscreen rendering, non-TUI guards, repeated shutdown and restart passed`,
+			`${manifest.name}: Pi ${expectedVersion} ${cli} host identity, offscreen rendering, non-TUI guards, repeated shutdown and restart passed`,
 		);
 	}
 } finally {

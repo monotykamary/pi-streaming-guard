@@ -17,7 +17,7 @@ _Long thinking traces should not make your terminal feel slower._
 
 You keep using Pi exactly the way you always do. Streaming Guard quietly keeps completed Markdown blocks around instead of asking Pi to parse, style, wrap, and pad the entire accumulated response again for every incoming delta. Long reasoning traces stay responsive, the rendered output stays the same, and there is nothing new to invoke while you work.
 
-This is a focused compatibility bridge for Pi 0.82.x–0.87.x, 0.99.x and 1.0.x–1.5.x. It is meant to disappear once the equivalent rendering fix ships upstream.
+This is a focused compatibility bridge for Pi 0.82.x–0.87.x, 0.99.x and 1.0.x–1.5.x. Pi 1.6 introduced native Markdown block caching, so the extension leaves its renderer untouched. You can uninstall the guard on Pi 1.6.
 
 ## Why Streaming Guard?
 
@@ -46,7 +46,7 @@ Requires Node.js 22.19+ and Pi 0.82.x–0.87.x, 0.99.x and 1.0.x–1.5.x.
 pi install npm:pi-streaming-guard
 ```
 
-Then start Pi normally. The guard enables itself for interactive sessions.
+Then start Pi normally. The guard enables itself for interactive sessions on the legacy hosts listed above.
 
 <details>
 <summary>Other install methods</summary>
@@ -121,7 +121,7 @@ MIT
 
 ## Pi 1.5 compatibility
 
-Development and offline host probes pin Pi 1.5.0. Native assistant components now retain Markdown blocks between updates; the guard preserves native output and delegates unchanged after disposal, including when another extension retains its wrappers. Tests compare every streamed prefix, Unicode, resize, theme changes, and output padding with native rendering. Both CLI entrypoints verify installation, repeated shutdown, restart, and non-TUI guards. Pi 1.6 and newer remain unsupported until explicitly audited.
+Development and offline host probes pin Pi 1.5.0. Native assistant components now retain Markdown blocks between updates; the guard preserves native output and delegates unchanged after disposal, including when another extension retains its wrappers. Tests compare every streamed prefix, Unicode, resize, theme changes, and output padding with native rendering. Both CLI entrypoints verify installation, repeated shutdown, restart, and non-TUI guards. The offline lifecycle probes also load Pi 1.6.0 and verify that neither prototype is patched.
 
 ## Pi 1.4 compatibility
 

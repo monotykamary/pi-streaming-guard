@@ -1,6 +1,6 @@
 {
 	"name": "pi-streaming-guard",
-	"version": "0.1.19",
+	"version": "0.1.20",
 	"description": "Keep Pi's TUI responsive during long streamed responses with incremental Markdown rendering",
 	"type": "module",
 	"license": "MIT",
@@ -37,7 +37,7 @@
 		"check": "biome check .",
 		"format": "biome check --write .",
 		"test": "vitest run",
-		"test:pi": "node scripts/test-pi-compat.mjs",
+		"test:pi": "node scripts/test-pi-compat.mjs && node scripts/test-pi-compat.mjs --native",
 		"typecheck": "tsc --noEmit",
 		"validate": "bun run check && bun run typecheck && bun run test",
 		"prepack": "bun run validate"
@@ -56,6 +56,7 @@
 		"@earendil-works/pi-ai": "1.5.0",
 		"@earendil-works/pi-coding-agent": "1.5.0",
 		"@earendil-works/pi-tui": "1.5.0",
+		"pi-native-host": "npm:@earendil-works/pi-coding-agent@1.6.0",
 		"@types/node": "22.19.19",
 		"tsx": "4.22.1",
 		"typescript": "5.9.3",

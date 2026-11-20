@@ -1,12 +1,17 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { getStreamingGuardStatus, installStreamingGuard, type StreamingGuardHandle } from "./patch.js";
+import {
+	getStreamingGuardStatus,
+	installStreamingGuard,
+	type StreamingGuardHandle,
+	usesNativeStreamingRender,
+} from "./patch.js";
 
 export default function streamingGuardExtension(pi: ExtensionAPI): void {
 	let enabled = true;
 	let handle: StreamingGuardHandle | undefined;
 
 	const activate = (ctx: ExtensionContext, reportErrors: boolean): void => {
-		if (!enabled || handle || ctx.mode !== "tui") return;
+		if (!enabled || handle || ctx.mode !== "tui" || usesNativeStreamingRender()) return;
 		try {
 			handle = installStreamingGuard();
 		} catch (error) {
@@ -34,6 +39,10 @@ export default function streamingGuardExtension(pi: ExtensionAPI): void {
 		description: "Show, enable, or disable the temporary streaming render guard",
 		handler: async (args, ctx) => {
 			const action = args.trim().toLowerCase() || "status";
+			if (usesNativeStreamingRender() && ["status", "on", "off"].includes(action)) {
+				ctx.ui.notify("Pi already uses native streaming rendering; no guard is needed", "info");
+				return;
+			}
 			if (action === "on") {
 				enabled = true;
 				activate(ctx, true);
